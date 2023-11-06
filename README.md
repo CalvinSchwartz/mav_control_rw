@@ -50,43 +50,44 @@ To run the controller with RotorS simulator (https://github.com/ethz-asl/rotors_
 * Install and initialize ROS indigo desktop full, additional ROS packages, catkin-tools:
   
 ```sh
-  $ sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu `lsb_release -sc` main" > /etc/apt/sources.list.d/ros-latest.list'
-  $ wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
-  $ sudo apt-get update
-  $ sudo apt-get install ros-indigo-desktop-full ros-indigo-joy ros-indigo-octomap-ros python-wstool python-catkin-tools
-  $ sudo rosdep init
-  $ rosdep update
-  $ source /opt/ros/indigo/setup.bash
+  sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu `lsb_release -sc` main" > /etc/apt/sources.list.d/ros-latest.list'
+  wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
+  sudo apt-get update
+  sudo apt-get install ros-noetic-desktop-full ros-noetic-joy ros-noetic-octomap-ros python3-wstool python3-catkin-tools python3-rosdep
+  sudo rosdep init
+  rosdep update
+  source /opt/ros/noetic/setup.bash
 ```
 * Initialize catkin workspace:
 ```sh
-  $ mkdir -p ~/catkin_ws/src
-  $ cd ~/catkin_ws
-  $ catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release
-  $ catkin init  # initialize your catkin workspace
+  mkdir -p ~/catkin_ws/src
+  cd ~/catkin_ws
+  catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release
+  catkin init  # initialize your catkin workspace
 ```
 * Get the controllers and dependencies
 ```sh
-  $ sudo apt-get install liblapacke-dev
-  $ git clone https://github.com/catkin/catkin_simple.git
-  $ git clone https://github.com/ethz-asl/rotors_simulator.git
-  $ git clone https://github.com/ethz-asl/mav_comm.git
-  $ git clone https://github.com/ethz-asl/eigen_catkin.git
+  sudo apt-get install liblapacke-dev
+  cd ~/catkin_ws/src
+  #git clone https://github.com/catkin/catkin_simple.git
+  #git clone https://github.com/ethz-asl/rotors_simulator.git
+  git clone https://github.com/ethz-asl/mav_comm.git
+  git clone https://github.com/ethz-asl/eigen_catkin.git
 
-  $ git clone https://github.com/ethz-asl/mav_control_rw.git
+  git clone https://github.com/ethz-asl/mav_control_rw.git
 ```
 * Build the workspace  
 ```sh
-  $ catkin build
+  catkin build
 ```
 
 * Run the simulator and the linear MPC. In seperate terminals run the following commands
   
 ```sh
-  $ roslaunch rotors_gazebo mav.launch mav_name:=firefly
+  roslaunch rotors_gazebo mav.launch mav_name:=firefly
 ```
 ```sh
-  $ roslaunch mav_linear_mpc mav_linear_mpc_sim.launch mav_name:=firefly
+  roslaunch mav_linear_mpc mav_linear_mpc_sim.launch mav_name:=firefly
 ```
 You can use `rqt` to publish commands to the controller.
 
@@ -94,16 +95,16 @@ You can use `rqt` to publish commands to the controller.
 To run the controller with the multi sensor fusion (MSF) framewok (https://github.com/ethz-asl/ethzasl_msf):
 * Get msf
 ```sh
-  $ git clone https://github.com/ethz-asl/ethzasl_msf.git
+  git clone https://github.com/ethz-asl/ethzasl_msf.git
 ```
 
 * Run the simulator, the linear MPC and MSF, in seperate terminals run the following commands
   
 ```sh
-  $ roslaunch rotors_gazebo mav.launch mav_name:=firefly
+  roslaunch rotors_gazebo mav.launch mav_name:=firefly
 ```
 ```sh
-  $ roslaunch mav_linear_mpc mav_linear_mpc_sim_msf.launch mav_name:=firefly
+  roslaunch mav_linear_mpc mav_linear_mpc_sim_msf.launch mav_name:=firefly
 ```
 
 Don't forget to initialize MSF. 
