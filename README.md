@@ -1,7 +1,14 @@
 mav_control_rw [![Build Status](https://travis-ci.org/ethz-asl/mav_control_rw.svg?branch=master)](https://travis-ci.org/ethz-asl/mav_control_rw)
 ======
 
-Control strategies for rotary wing Micro Aerial Vehicles (MAVs) using ROS
+Control strategies for rotary wing Micro Aerial Vehicles (MAVs) using ROS, [ethz-asl/mav_control_rw](https://github.com/ethz-asl/mav_control_rw) made usable in ROS2
+
+Changes
+------
+An attempt to switch the ROS1 Ingigo package to a ROS2 Humble package capable of interfacing with the PX4 Autopilot. Still a work in progress.
+This repository only contains the following packages:
+- *mav_linear_mpc* : Linear MPC for MAV trajectory tracking
+- *PID_attitude_control* : low level PID attitude controller 
 
 Overview
 ------
@@ -78,10 +85,12 @@ To run the controller with RotorS simulator (https://github.com/ethz-asl/rotors_
 ```
 * Build the workspace  
 ```sh
-  catkin build
+  catkin_make
+  # Source setup file
+  source ~/catkin_ws/devel/setup.bash
 ```
 
-* Run the simulator and the linear MPC. In seperate terminals run the following commands
+* Run the simulator and the linear MPC. In separate terminals run the following commands
   
 ```sh
   roslaunch rotors_gazebo mav.launch mav_name:=firefly
@@ -92,13 +101,13 @@ To run the controller with RotorS simulator (https://github.com/ethz-asl/rotors_
 You can use `rqt` to publish commands to the controller.
 
 
-To run the controller with the multi sensor fusion (MSF) framewok (https://github.com/ethz-asl/ethzasl_msf):
+To run the controller with the multi sensor fusion (MSF) framework (https://github.com/ethz-asl/ethzasl_msf):
 * Get msf
 ```sh
   git clone https://github.com/ethz-asl/ethzasl_msf.git
 ```
 
-* Run the simulator, the linear MPC and MSF, in seperate terminals run the following commands
+* Run the simulator, the linear MPC and MSF, in separate terminals run the following commands
   
 ```sh
   roslaunch rotors_gazebo mav.launch mav_name:=firefly
@@ -106,19 +115,6 @@ To run the controller with the multi sensor fusion (MSF) framewok (https://githu
 ```sh
   roslaunch mav_linear_mpc mav_linear_mpc_sim_msf.launch mav_name:=firefly
 ```
-
-Don't forget to initialize MSF. 
-
-Supported autopilots
-------
-### Asctec Research Platforms
-This control will work as is with the ros interface to the now discontinued Asctec research platforms (Hummingbird, Pelican, Firefly and Neo). 
-
-### Pixhawk
-This controller requires some small modifications to the PX4 firmware to allow yaw rate inputs. A modified version of the firmware can be found [here](https://github.com/ethz-asl/ethzasl_mav_px4). The firmware is interfaced with through a [modified mavros node](https://github.com/ethz-asl/mavros).
-
-### DJI
-The controller can interface with DJI platforms through our [mav_dji_ros_interface](https://github.com/ethz-asl/mav_dji_ros_interface)
 
 Published and subscribed topics
 ------
@@ -214,7 +210,3 @@ References
 [2] Linear vs Nonlinear MPC for Trajectory Tracking Applied to Rotary Wing Micro Aerial Vehicles. Mina Kamel, Michael Burri and Roland Siegwart. arXiv:1611.09240
 
 --------
-
-Contact
--------
-Mina Kamel fmina(at)ethz.ch
