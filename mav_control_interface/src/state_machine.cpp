@@ -16,7 +16,7 @@
 */
 
 #include <mav_msgs/default_topics.h>
-#include <std_msgs/String.h>
+#include <std_msgs/msg/string.hpp>
 #include <tf_conversions/tf_eigen.h>
 
 #include "state_machine.h"
@@ -25,7 +25,7 @@ namespace mav_control_interface {
 
 namespace state_machine {
 
-StateMachineDefinition::StateMachineDefinition(const ros::NodeHandle& nh, const ros::NodeHandle& private_nh,
+StateMachineDefinition::StateMachineDefinition(const rclcpp::Node& nh, const rclcpp::Node& private_nh,
                                                std::shared_ptr<PositionControllerInterface> controller)
     :nh_(nh),
      private_nh_(private_nh),
@@ -34,16 +34,16 @@ StateMachineDefinition::StateMachineDefinition(const ros::NodeHandle& nh, const 
   command_publisher_ = nh_.advertise<mav_msgs::RollPitchYawrateThrust>(
       mav_msgs::default_topics::COMMAND_ROLL_PITCH_YAWRATE_THRUST, 1);
 
-  current_reference_publisher_ = nh_.advertise<trajectory_msgs::MultiDOFJointTrajectory>(
+  current_reference_publisher_ = nh_.advertise<trajectory_msgs::msg::MultiDOFJointTrajectory>(
       "command/current_reference", 1);
 
-  state_info_publisher_ = nh_.advertise<std_msgs::String>("state_machine/state_info", 1, true);
+  state_info_publisher_ = nh_.advertise<std_msgs::msg::String>("state_machine/state_info", 1, true);
 
   private_nh_.param<bool>("use_rc_teleop", use_rc_teleop_, true);
   private_nh_.param<std::string>("reference_frame", reference_frame_id_, "odom");
-  predicted_state_publisher_ = nh_.advertise<visualization_msgs::Marker>( "predicted_state", 0 );
+  predicted_state_publisher_ = nh_.advertise<visualization_msgs::msg::Marker>( "predicted_state", 0 );
   full_predicted_state_publisher_ = 
-    nh_.advertise<trajectory_msgs::MultiDOFJointTrajectory>( "full_predicted_state", 1 );
+    nh_.advertise<trajectory_msgs::msg::MultiDOFJointTrajectory>( "full_predicted_state", 1 );
 }
 
 void StateMachineDefinition::SetParameters(const Parameters& parameters)
@@ -61,7 +61,7 @@ void StateMachineDefinition::PublishAttitudeCommand (
   tmp_command.thrust.y() = 0;
   tmp_command.thrust.z() = std::max(0.0, command.thrust.z());
 
-  msg->header.stamp = ros::Time::now();  // TODO(acmarkus): get from msg
+  msg->header.stamp = rclcpp::Time::now();  // TODO(acmarkus): get from msg
   mav_msgs::msgRollPitchYawrateThrustFromEigen(command, msg.get());
   command_publisher_.publish(msg);
 }
@@ -69,7 +69,7 @@ void StateMachineDefinition::PublishAttitudeCommand (
 void StateMachineDefinition::PublishStateInfo(const std::string& info)
 {
   if (state_info_publisher_.getNumSubscribers() > 0) {
-    std_msgs::StringPtr msg(new std_msgs::String);
+    std_msgs::msg::StringPtr msg(new std_msgs::msg::String);
     msg->data = info;
     state_info_publisher_.publish(msg);
   }
@@ -77,7 +77,7 @@ void StateMachineDefinition::PublishStateInfo(const std::string& info)
 
 void StateMachineDefinition::PublishCurrentReference()
 {
-  ros::Time time_now = ros::Time::now();
+  rclcpp::Time time_now = rclcpp::Time::now();
   mav_msgs::EigenTrajectoryPoint current_reference;
   controller_->getCurrentReference(&current_reference);
 
@@ -91,10 +91,10 @@ void StateMachineDefinition::PublishCurrentReference()
   transform.setRotation(q);
 
   transform_broadcaster_.sendTransform(
-      tf::StampedTransform(transform, time_now, reference_frame_id_, nh_.getNamespace() + "/current_reference"));
+      tf2::StampedTransform(transform, time_now, reference_frame_id_, nh_.getNamespace() + "/current_reference"));
 
   if (current_reference_publisher_.getNumSubscribers() > 0) {
-    trajectory_msgs::MultiDOFJointTrajectoryPtr msg(new trajectory_msgs::MultiDOFJointTrajectory);
+    trajectory_msgs::msg::MultiDOFJointTrajectoryPtr msg(new trajectory_msgs::msg::MultiDOFJointTrajectory);
     mav_msgs::msgMultiDofJointTrajectoryFromEigen(current_reference, msg.get());
     msg->header.stamp = time_now;
     msg->header.frame_id = reference_frame_id_;
@@ -107,18 +107,18 @@ void StateMachineDefinition::PublishPredictedState()
   if (predicted_state_publisher_.getNumSubscribers() > 0) {
     mav_msgs::EigenTrajectoryPointDeque predicted_state;
     controller_->getPredictedState(&predicted_state);
-    visualization_msgs::Marker marker_queue;
+    visualization_msgs::msg::Marker marker_queue;
     marker_queue.header.frame_id = reference_frame_id_;
-    marker_queue.header.stamp = ros::Time();
-    marker_queue.type = visualization_msgs::Marker::LINE_STRIP;
+    marker_queue.header.stamp = rclcpp::Time();
+    marker_queue.type = visualization_msgs::msg::Marker::LINE_STRIP;
     marker_queue.scale.x = 0.05;
     marker_queue.color.a = 1.0;
     marker_queue.color.r = 1.0;
 
-    //    marker_heading.type = visualization_msgs::Marker::ARROW;
+    //    marker_heading.type = visualization_msgs::msg::Marker::ARROW;
     {
       for (size_t i = 0; i < predicted_state.size(); i++) {
-        geometry_msgs::Point p;
+        geometry_msgs::msg::Point p;
         p.x = predicted_state.at(i).position_W(0);
         p.y = predicted_state.at(i).position_W(1);
         p.z = predicted_state.at(i).position_W(2);
@@ -133,7 +133,7 @@ void StateMachineDefinition::PublishPredictedState()
     mav_msgs::EigenTrajectoryPointDeque predicted_state;
     controller_->getPredictedState(&predicted_state);
 
-    trajectory_msgs::MultiDOFJointTrajectory msg;
+    trajectory_msgs::msg::MultiDOFJointTrajectory msg;
     msgMultiDofJointTrajectoryFromEigen(predicted_state, &msg);
 
     //add in timestamp information

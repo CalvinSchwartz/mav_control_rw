@@ -27,7 +27,7 @@ class RcInterfaceAci : public RcInterfaceBase {
  public:
   static constexpr float STICK_DEADZONE = 0.1;
 
-  RcInterfaceAci(const ros::NodeHandle& nh);
+  RcInterfaceAci(const rclcpp::Node& nh);
 
   virtual std::string getName() const;
   virtual bool isActive() const;
@@ -36,10 +36,10 @@ class RcInterfaceAci : public RcInterfaceBase {
   virtual float getStickDeadzone() const;
 
  private:
-  void rcCallback(const sensor_msgs::JoyConstPtr& msg);
-  bool isRcOn(const sensor_msgs::JoyConstPtr& msg) const;
+  void rcCallback(const sensor_msgs::msg::Joy::ConstSharedPtr& msg);
+  bool isRcOn(const sensor_msgs::msg::Joy::ConstSharedPtr& msg) const;
 
-  ros::NodeHandle nh_;
+  rclcpp::Node nh_;
   ros::Subscriber rc_sub_;
 
   RcData last_data_;

@@ -20,7 +20,7 @@
 
 namespace mav_control_interface {
 
-RcInterfaceAci::RcInterfaceAci(const ros::NodeHandle& nh)
+RcInterfaceAci::RcInterfaceAci(const rclcpp::Node& nh)
     : RcInterfaceBase(),
       nh_(nh),
       is_on_(false)
@@ -28,7 +28,7 @@ RcInterfaceAci::RcInterfaceAci(const ros::NodeHandle& nh)
   rc_sub_ = nh_.subscribe("rc", 1, &RcInterfaceAci::rcCallback, this);
 }
 
-void RcInterfaceAci::rcCallback(const sensor_msgs::JoyConstPtr& msg)
+void RcInterfaceAci::rcCallback(const sensor_msgs::msg::Joy::ConstSharedPtr& msg)
 {
   is_on_ = isRcOn(msg);
   last_data_.timestamp = msg->header.stamp;
@@ -99,7 +99,7 @@ float RcInterfaceAci::getStickDeadzone() const
   return STICK_DEADZONE;
 }
 
-bool RcInterfaceAci::isRcOn(const sensor_msgs::JoyConstPtr& msg) const
+bool RcInterfaceAci::isRcOn(const sensor_msgs::msg::Joy::ConstSharedPtr& msg) const
 {
   return (msg->buttons[0] == 1);
 }

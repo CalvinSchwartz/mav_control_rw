@@ -22,7 +22,7 @@
 
 #include <mav_control_interface/position_controller_interface.h>
 #include <mav_control_interface/rc_interface.h>
-#include <ros/ros.h>
+#include "rclcpp/rclcpp.hpp"
 
 namespace mav_control_interface {
 
@@ -31,7 +31,7 @@ class MavControlInterfaceImpl;
 class MavControlInterface
 {
  public:
-  MavControlInterface(ros::NodeHandle& nh, ros::NodeHandle& private_nh,
+  MavControlInterface(rclcpp::Node& nh, rclcpp::Node& private_nh,
                       std::shared_ptr<PositionControllerInterface> controller,
                       std::shared_ptr<RcInterfaceBase> rc_interface);
 

@@ -33,14 +33,14 @@
 
 #include <mav_msgs/conversions.h>
 #include <mav_msgs/eigen_mav_msgs.h>
-#include <ros/ros.h>
+#include "rclcpp/rclcpp.hpp"
 #include <tf/transform_broadcaster.h>
 
 #include <mav_control_interface/position_controller_interface.h>
 #include <mav_control_interface/rc_interface.h>
 #include "parameters.h"
 
-#include <visualization_msgs/Marker.h>
+#include <visualization_msgs/msg/marker.hpp>
 
 namespace mav_control_interface {
 
@@ -97,8 +97,8 @@ typedef boost::msm::back::state_machine<StateMachineDefinition, boost::msm::back
 class StateMachineDefinition : public msm_front::state_machine_def<StateMachineDefinition>
 {
  private:
-  ros::NodeHandle nh_;
-  ros::NodeHandle private_nh_;
+  rclcpp::Node nh_;
+  rclcpp::Node private_nh_;
 
   // States, more convenient to have in state machine.
   struct Inactive;
@@ -185,7 +185,7 @@ class StateMachineDefinition : public msm_front::state_machine_def<StateMachineD
   };
 
  public:
-  StateMachineDefinition(const ros::NodeHandle& nh, const ros::NodeHandle& private_nh,
+  StateMachineDefinition(const rclcpp::Node& nh, const rclcpp::Node& private_nh,
                          std::shared_ptr<PositionControllerInterface> controller);
 
   template<class Event, class FSM>
@@ -415,7 +415,7 @@ private:
     void operator()(const RcUpdate& evt, FSM& fsm, RcTeleOp& src_state, RcTeleOp&)
     {
       if (fsm.current_reference_queue_.empty()){
-        ROS_WARN("[RcTeleOp]: current reference queue is empty, not sending commands.");
+        RCLCPP_WARN(rclcpp::get_logger("MavControlInterface"), "[RcTeleOp]: current reference queue is empty, not sending commands.");
         return;
       }
 
@@ -575,7 +575,7 @@ private:
     template<class FSM, class SourceState, class TargetState>
     bool operator()(const OdometryWatchdog& evt, FSM& fsm, SourceState&, TargetState&)
     {
-      return std::abs(static_cast<int64_t>(ros::Time::now().toNSec()) - fsm.current_state_.timestamp_ns) > kOdometryOutdated_ns;
+      return std::abs(static_cast<int64_t>(rclcpp::Time::now().toNSec()) - fsm.current_state_.timestamp_ns) > kOdometryOutdated_ns;
     }
   };
 

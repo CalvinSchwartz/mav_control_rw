@@ -21,9 +21,9 @@
 
 #include <functional>
 
-#include <ros/ros.h>
+#include "rclcpp/rclcpp.hpp"
 #include <ros/subscriber.h>
-#include <sensor_msgs/Joy.h>
+#include <sensor_msgs/msg/joy.hpp>
 
 namespace mav_control_interface {
 
@@ -54,7 +54,7 @@ class RcData
   {
 
   }
-  ros::Time timestamp;
+  rclcpp::Time timestamp;
   float left_up_down;
   float left_side;
   float right_up_down;

@@ -60,7 +60,7 @@ class DummyController : public PositionControllerInterface{
 
   virtual bool calculateRollPitchYawrateThrustCommand(
       mav_msgs::EigenRollPitchYawrateThrust* attitude_thrust_command){
-    ROS_INFO("calculateRollPitchYawrateThrustCommand");
+    RCLCPP_INFO(rclcpp::get_logger("MavControlInterface"), "calculateRollPitchYawrateThrustCommand");
     return true;
   }
 
@@ -90,7 +90,7 @@ class DummyController : public PositionControllerInterface{
   }
 
   virtual bool calculateAttitudeThrustCommand(mav_msgs::EigenAttitudeThrust* attitude_thrust_command){
-    ROS_INFO("calculateAttitudeThrustCommand");
+    RCLCPP_INFO(rclcpp::get_logger("MavControlInterface"), "calculateAttitudeThrustCommand");
     return true;
   }
 
@@ -102,13 +102,14 @@ class DummyController : public PositionControllerInterface{
 
 int main(int argc, char** argv){
 
-  ros::init(argc, argv, "test_lowlevel_flightmanager");
-  ros::NodeHandle nh, pnh("~");
+  rclcpp::init(argc, argv);
+  auto node = rclcpp::Node::make_shared("test_lowlevel_flightmanager");
+  rclcpp::Node nh, pnh("~");
 
   std::shared_ptr<RcInterfaceAci> rc(new RcInterfaceAci(nh));
   std::shared_ptr<DummyController> controller(new DummyController);
 
   MavControlInterface control_interface(nh, pnh, controller, rc);
 
-  ros::spin();
+  rclcpp::spin(node);
 }

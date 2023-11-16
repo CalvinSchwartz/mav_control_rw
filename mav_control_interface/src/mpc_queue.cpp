@@ -19,7 +19,7 @@
 
 namespace mav_control {
 
-MPCQueue::MPCQueue(const ros::NodeHandle& nh, const ros::NodeHandle& private_nh, int mpc_queue_size)
+MPCQueue::MPCQueue(const rclcpp::Node& nh, const rclcpp::Node& private_nh, int mpc_queue_size)
     : nh_(nh),
       private_nh_(private_nh),
       mpc_queue_size_(mpc_queue_size),
@@ -30,9 +30,9 @@ MPCQueue::MPCQueue(const ros::NodeHandle& nh, const ros::NodeHandle& private_nh,
       queue_dt_(0.01),
       queue_start_time_(0.0)
 {
-  trajectory_reference_vis_publisher_ = nh_.advertise<visualization_msgs::Marker>( "reference_trajectory", 0 );
+  trajectory_reference_vis_publisher_ = nh_.advertise<visualization_msgs::msg::Marker>( "reference_trajectory", 0 );
   //publish at 10 hz
-  publish_queue_marker_timer_ = nh_.createTimer(ros::Duration(0.1), &MPCQueue::publishQueueMarker, this);
+  publish_queue_marker_timer_ = nh_.createTimer(rclcpp::Duration(0.1), &MPCQueue::publishQueueMarker, this);
   private_nh_.param<std::string>("reference_frame", reference_frame_id_, "odom");
   minimum_queue_size_ = mpc_queue_size_*std::ceil(prediction_sampling_time_/queue_dt_);
 }
@@ -137,7 +137,7 @@ void MPCQueue::insertReferenceTrajectory(const mav_msgs::EigenTrajectoryPointDeq
     double commanded_time_from_start = static_cast<double>(
         interpolated_queue.begin()->time_from_start_ns) * 1e-9;
 
-    //ROS_WARN("Commanded time from start: %f, queue time: %f", commanded_time_from_start, queue_start_time_);
+    //RCLCPP_WARN(rclcpp::get_logger("MavControlInterface"), "Commanded time from start: %f, queue time: %f", commanded_time_from_start, queue_start_time_);
 
     if (commanded_time_from_start <= queue_start_time_ || commanded_time_from_start <= 1e-4) {
       clearQueue();
@@ -156,8 +156,8 @@ void MPCQueue::insertReferenceTrajectory(const mav_msgs::EigenTrajectoryPointDeq
         yaw_rate_reference_.erase(yaw_rate_reference_.begin() + start_index, yaw_rate_reference_.end());
         current_queue_size_ = start_index; // +/- 1?
 
-        //ROS_INFO("Queue start time: %f, queue end time: %f, reference start time: %f, start_index: %d", queue_start_time_, queue_end_time, commanded_time_from_start, start_index);
-        //ROS_INFO("Position x at queue start index: %f -> [...%f %f...], position x at command start: %f",
+        //RCLCPP_INFO(rclcpp::get_logger("MavControlInterface"), "Queue start time: %f, queue end time: %f, reference start time: %f, start_index: %d", queue_start_time_, queue_end_time, commanded_time_from_start, start_index);
+        //RCLCPP_INFO(rclcpp::get_logger("MavControlInterface"), "Position x at queue start index: %f -> [...%f %f...], position x at command start: %f",
         //    last_ref, (position_reference_.end()-2)->x(), position_reference_.back().x(), interpolated_queue.front().position_W.x());
       }
       // Else just append to the end as before.
@@ -177,7 +177,7 @@ void MPCQueue::insertReferenceTrajectory(const mav_msgs::EigenTrajectoryPointDeq
     fillQueueWithPoint(interpolated_queue.back());
   }
 
-  //ROS_INFO("Current queue size: %d, current actual size: %d", current_queue_size_, position_reference_.size());
+  //RCLCPP_INFO(rclcpp::get_logger("MavControlInterface"), "Current queue size: %d, current actual size: %d", current_queue_size_, position_reference_.size());
 }
 
 void MPCQueue::pushBackPoint(const mav_msgs::EigenTrajectoryPoint& point)
@@ -251,21 +251,21 @@ void MPCQueue::updateQueue()
   }
 }
 
-void MPCQueue::publishQueueMarker(const ros::TimerEvent&)
+void MPCQueue::publishQueueMarker(const rclcpp::TimerEvent&)
 {
   if (trajectory_reference_vis_publisher_.getNumSubscribers() > 0) {
-    visualization_msgs::Marker marker_queue;
+    visualization_msgs::msg::Marker marker_queue;
     marker_queue.header.frame_id = reference_frame_id_;
-    marker_queue.header.stamp = ros::Time();
-    marker_queue.type = visualization_msgs::Marker::LINE_STRIP;
+    marker_queue.header.stamp = rclcpp::Time();
+    marker_queue.type = visualization_msgs::msg::Marker::LINE_STRIP;
     marker_queue.scale.x = 0.05;
     marker_queue.color.a = 1.0;
     marker_queue.color.g = 1.0;
 
-//    marker_heading.type = visualization_msgs::Marker::ARROW;
+//    marker_heading.type = visualization_msgs::msg::Marker::ARROW;
     {
       for (size_t i = 0; i < current_queue_size_; i++) {
-        geometry_msgs::Point p;
+        geometry_msgs::msg::Point p;
         p.x = position_reference_.at(i).x();
         p.y = position_reference_.at(i).y();
         p.z = position_reference_.at(i).z();

@@ -20,11 +20,11 @@
 
 #include <deque>
 
-#include <ros/ros.h>
+#include "rclcpp/rclcpp.hpp"
 #include <mav_msgs/eigen_mav_msgs.h>
-#include <nav_msgs/Odometry.h>
-#include <std_srvs/Empty.h>
-#include <trajectory_msgs/MultiDOFJointTrajectory.h>
+#include <nav_msgs/msg/odometry.hpp>
+#include <std_srvs/srv/empty.hpp>
+#include <trajectory_msgs/msg/multi_dof_joint_trajectory.hpp>
 
 #include <mav_control_interface/deadzone.h>
 #include <mav_control_interface/position_controller_interface.h>
@@ -37,7 +37,7 @@ namespace mav_control_interface {
 class MavControlInterfaceImpl
 {
  public:
-  MavControlInterfaceImpl(ros::NodeHandle& nh, ros::NodeHandle& private_nh,
+  MavControlInterfaceImpl(rclcpp::Node& nh, rclcpp::Node& private_nh,
                           std::shared_ptr<PositionControllerInterface> controller,
                           std::shared_ptr<RcInterfaceBase> rc_interface);
 
@@ -46,13 +46,13 @@ class MavControlInterfaceImpl
  private:
   static constexpr double kOdometryWatchdogTimeout = 1.0;  // seconds
 
-  ros::NodeHandle nh_;
-  ros::NodeHandle private_nh_;
+  rclcpp::Node nh_;
+  rclcpp::Node private_nh_;
 
   ros::Subscriber odometry_subscriber_;
   ros::Subscriber command_trajectory_subscriber_;
   ros::Subscriber command_trajectory_array_subscriber_;
-  ros::Timer odometry_watchdog_;
+  rclcpp::Timer odometry_watchdog_;
 
   ros::ServiceServer takeoff_server_;
   ros::ServiceServer back_to_position_hold_server_;
@@ -61,13 +61,13 @@ class MavControlInterfaceImpl
 
   std::unique_ptr<state_machine::StateMachine> state_machine_;
 
-  void CommandPoseCallback(const geometry_msgs::PoseStampedConstPtr& msg);
-  void CommandTrajectoryCallback(const trajectory_msgs::MultiDOFJointTrajectoryConstPtr& msg);
-  void OdometryCallback(const nav_msgs::OdometryConstPtr& msg);
-  void OdometryWatchdogCallback(const ros::TimerEvent& e);
+  void CommandPoseCallback(const geometry_msgs::msg::PoseStamped::ConstSharedPtr& msg);
+  void CommandTrajectoryCallback(const trajectory_msgs::msg::MultiDOFJointTrajectory::ConstSharedPtr& msg);
+  void OdometryCallback(const nav_msgs::msg::Odometry::ConstSharedPtr& msg);
+  void OdometryWatchdogCallback(const rclcpp::TimerEvent& e);
   void RcUpdatedCallback(const RcInterfaceBase&);
-  bool TakeoffCallback(std_srvs::EmptyRequest& request, std_srvs::EmptyResponse& response);
-  bool BackToPositionHoldCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
+  bool TakeoffCallback(std_srvs::srv::EmptyRequest& request, std_srvs::srv::EmptyResponse& response);
+  bool BackToPositionHoldCallback(std_srvs::srv::Empty::Request& request, std_srvs::srv::Empty::Response& response);
 
   void publishAttitudeCommand(const mav_msgs::RollPitchYawrateThrust& command);
 };

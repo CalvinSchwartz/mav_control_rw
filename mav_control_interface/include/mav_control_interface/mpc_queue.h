@@ -26,7 +26,7 @@
 #include <thread>
 #include <mutex>
 #include <memory>
-#include <visualization_msgs/Marker.h>
+#include <visualization_msgs/msg/marker.hpp>
 
 namespace mav_control {
 
@@ -35,7 +35,7 @@ typedef std::deque<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> > 
 class MPCQueue
 {
  public:
-  MPCQueue(const ros::NodeHandle& nh, const ros::NodeHandle& private_nh, int mpc_queue_size);
+  MPCQueue(const rclcpp::Node& nh, const rclcpp::Node& private_nh, int mpc_queue_size);
   ~MPCQueue();
 
 	void initializeQueue(const mav_msgs::EigenTrajectoryPoint& point,
@@ -61,8 +61,8 @@ class MPCQueue
 
  private:
 
-  ros::NodeHandle nh_;
-  ros::NodeHandle private_nh_;
+  rclcpp::Node nh_;
+  rclcpp::Node private_nh_;
 
   int minimum_queue_size_;
   int mpc_queue_size_;
@@ -95,8 +95,8 @@ class MPCQueue
   void printQueue();
 
   ros::Publisher trajectory_reference_vis_publisher_;
-  void publishQueueMarker(const ros::TimerEvent&);
-  ros::Timer publish_queue_marker_timer_;
+  void publishQueueMarker(const rclcpp::TimerEvent&);
+  rclcpp::Timer publish_queue_marker_timer_;
   std::string reference_frame_id_;
 };
 

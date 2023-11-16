@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include <ros/ros.h>
+#include "rclcpp/rclcpp.hpp"
 
 #include <mav_control_interface/position_controller_interface.h>
 

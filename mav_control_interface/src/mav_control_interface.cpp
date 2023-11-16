@@ -21,7 +21,7 @@
 
 namespace mav_control_interface {
 
-MavControlInterface::MavControlInterface(ros::NodeHandle& nh, ros::NodeHandle& private_nh,
+MavControlInterface::MavControlInterface(rclcpp::Node& nh, rclcpp::Node& private_nh,
                                          std::shared_ptr<PositionControllerInterface> controller,
                                          std::shared_ptr<RcInterfaceBase> rc_interface)
 {
