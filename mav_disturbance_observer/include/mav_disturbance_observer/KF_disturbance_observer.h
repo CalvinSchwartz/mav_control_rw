@@ -36,9 +36,9 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
-#include <ros/ros.h>
+#include "rclcpp/rclcpp.hpp"
 #include <mav_disturbance_observer/ObserverState.h>
-#include <std_srvs/Empty.h>
+#include <std_srvs/srv/empty.hpp>
 #include <iostream>
 #include <unsupported/Eigen/MatrixFunctions>
 
@@ -51,7 +51,7 @@ class KFDisturbanceObserver
 {
  public:
 
-  KFDisturbanceObserver(const ros::NodeHandle& nh, const ros::NodeHandle& private_nh);
+  KFDisturbanceObserver(const rclcpp::Node& nh, const rclcpp::Node& private_nh);
   void reset(const Eigen::Vector3d& initial_position, const Eigen::Vector3d& initial_velocity,
              const Eigen::Vector3d& initial_attitude, const Eigen::Vector3d& initial_angular_rate,
              const Eigen::Vector3d& initial_external_forces,
@@ -127,7 +127,7 @@ class KFDisturbanceObserver
 
   typedef Eigen::Matrix<double, kStateSize, 1> StateVector;
 
-  ros::NodeHandle nh_, private_nh_, observer_nh_;
+  rclcpp::Node nh_, private_nh_, observer_nh_;
   bool initialized_;
   Eigen::Matrix<double, kStateSize, 1> state_;  // [pos, vel, rpy, omega, external_forces, external_moments]
   Eigen::Matrix<double, kStateSize, 1> predicted_state_;
@@ -169,8 +169,8 @@ class KFDisturbanceObserver
   ros::Publisher observer_state_pub_;
 
   bool is_calibrating_;         // true if calibrating
-  ros::Time start_calibration_time_;   // t0 calibration
-  ros::Duration calibration_duration_;     // calibration duration
+  rclcpp::Time start_calibration_time_;   // t0 calibration
+  rclcpp::Duration calibration_duration_;     // calibration duration
   Eigen::Vector3d forces_offset_;
   Eigen::Vector3d moments_offset_;
   int calibration_counter_;
@@ -178,7 +178,7 @@ class KFDisturbanceObserver
 
   void initialize();
   void systemDynamics(double dt);
-  bool startCalibrationCallback(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
+  bool startCalibrationCallback(std_srvs::srv::Empty::Request& req, std_srvs::srv::Empty::Response& res);
 
   dynamic_reconfigure::Server<mav_disturbance_observer::KFDisturbanceObserverConfig> dyn_config_server_;
 

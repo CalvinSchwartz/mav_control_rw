@@ -39,8 +39,8 @@ constexpr int KFDisturbanceObserver::kStateSize;
 constexpr int KFDisturbanceObserver::kMeasurementSize;
 constexpr double KFDisturbanceObserver::kGravity;
 
-KFDisturbanceObserver::KFDisturbanceObserver(const ros::NodeHandle& nh,
-                                             const ros::NodeHandle& private_nh)
+KFDisturbanceObserver::KFDisturbanceObserver(const rclcpp::Node& nh,
+                                             const rclcpp::Node& private_nh)
     : nh_(nh),
       private_nh_(private_nh),
       observer_nh_(private_nh, "KF_observer"),
@@ -48,7 +48,7 @@ KFDisturbanceObserver::KFDisturbanceObserver(const ros::NodeHandle& nh,
       is_calibrating_(false),
       F_(kStateSize, kStateSize),
       H_(kMeasurementSize, kStateSize),
-      dyn_config_server_(ros::NodeHandle(private_nh, "KF_observer")),
+      dyn_config_server_(rclcpp::Node(private_nh, "KF_observer")),
       calibration_counter_(0)
 {
   state_covariance_.setZero();
@@ -71,13 +71,13 @@ KFDisturbanceObserver::KFDisturbanceObserver(const ros::NodeHandle& nh,
   initialize();
 }
 
-bool KFDisturbanceObserver::startCalibrationCallback(std_srvs::Empty::Request& req,
-                                                     std_srvs::Empty::Response& res)
+bool KFDisturbanceObserver::startCalibrationCallback(std_srvs::srv::Empty::Request& req,
+                                                     std_srvs::srv::Empty::Response& res)
 {
   if (startCalibration()) {
     return true;
   }
-  ROS_WARN("KF Calibration Failed...");
+  RCLCPP_WARN(rclcpp::get_logger("MavDisturbanceObserver"), "KF Calibration Failed...");
   return false;
 }
 
@@ -88,7 +88,7 @@ bool KFDisturbanceObserver::startCalibration()
     forces_offset_.setZero();
     moments_offset_.setZero();
     calibration_counter_ = 0;
-    start_calibration_time_ = ros::Time::now();
+    start_calibration_time_ = rclcpp::Time::now();
     return true;
   }
   return false;
@@ -97,7 +97,7 @@ bool KFDisturbanceObserver::startCalibration()
 void KFDisturbanceObserver::initialize()
 {
 
-  ROS_INFO("start initializing mav_disturbance_observer:KF");
+  RCLCPP_INFO(rclcpp::get_logger("MavDisturbanceObserver"), "start initializing mav_disturbance_observer:KF");
 
   service_ = observer_nh_.advertiseService("StartCalibrateKF",
                                            &KFDisturbanceObserver::startCalibrationCallback, this);
@@ -118,7 +118,7 @@ void KFDisturbanceObserver::initialize()
 
   initialized_ = true;
 
-  ROS_INFO("Kalman Filter Initialized!");
+  RCLCPP_INFO(rclcpp::get_logger("MavDisturbanceObserver"), "Kalman Filter Initialized!");
 
 }
 
@@ -132,106 +132,106 @@ void KFDisturbanceObserver::loadROSParams()
 
   double calibration_duration;
   if (!observer_nh_.getParam("calibration_duration", calibration_duration)) {
-    ROS_ERROR("calibration_duration in KF are not loaded from ros parameter server");
+    RCLCPP_ERROR(rclcpp::get_logger("MavDisturbanceObserver"), "calibration_duration in KF are not loaded from ros parameter server");
     abort();
   }
-  calibration_duration_ = ros::Duration(calibration_duration);
+  calibration_duration_ = rclcpp::Duration(calibration_duration);
 
   if (!observer_nh_.getParam("drag_coefficients", temporary_drag)) {
-    ROS_ERROR("Drag Coefficients in KF are not loaded from ros parameter server");
+    RCLCPP_ERROR(rclcpp::get_logger("MavDisturbanceObserver"), "Drag Coefficients in KF are not loaded from ros parameter server");
     abort();
   }
 
   if (!observer_nh_.getParam("roll_omega", roll_omega_)) {
-    ROS_ERROR("roll_omega in KF is not loaded from ros parameter server");
+    RCLCPP_ERROR(rclcpp::get_logger("MavDisturbanceObserver"), "roll_omega in KF is not loaded from ros parameter server");
     abort();
   }
 
   if (!observer_nh_.getParam("roll_damping", roll_damping_)) {
-    ROS_ERROR("roll_damping in KF is not loaded from ros parameter server");
+    RCLCPP_ERROR(rclcpp::get_logger("MavDisturbanceObserver"), "roll_damping in KF is not loaded from ros parameter server");
     abort();
   }
 
   if (!observer_nh_.getParam("roll_gain", roll_gain_)) {
-    ROS_ERROR("roll_gain in KF is not loaded from ros parameter server");
+    RCLCPP_ERROR(rclcpp::get_logger("MavDisturbanceObserver"), "roll_gain in KF is not loaded from ros parameter server");
     abort();
   }
 
   if (!observer_nh_.getParam("pitch_omega", pitch_omega_)) {
-    ROS_ERROR("pitch_omega in KF is not loaded from ros parameter server");
+    RCLCPP_ERROR(rclcpp::get_logger("MavDisturbanceObserver"), "pitch_omega in KF is not loaded from ros parameter server");
     abort();
   }
 
   if (!observer_nh_.getParam("pitch_damping", pitch_damping_)) {
-    ROS_ERROR("pitch_damping in KF is not loaded from ros parameter server");
+    RCLCPP_ERROR(rclcpp::get_logger("MavDisturbanceObserver"), "pitch_damping in KF is not loaded from ros parameter server");
     abort();
   }
 
   if (!observer_nh_.getParam("pitch_gain", pitch_gain_)) {
-    ROS_ERROR("pitch_gain in KF is not loaded from ros parameter server");
+    RCLCPP_ERROR(rclcpp::get_logger("MavDisturbanceObserver"), "pitch_gain in KF is not loaded from ros parameter server");
     abort();
   }
 
   if (!observer_nh_.getParam("yaw_omega", yaw_omega_)) {
-    ROS_ERROR("yaw_omega in KF is not loaded from ros parameter server");
+    RCLCPP_ERROR(rclcpp::get_logger("MavDisturbanceObserver"), "yaw_omega in KF is not loaded from ros parameter server");
   }
 
   if (!observer_nh_.getParam("yaw_damping", yaw_damping_)) {
-    ROS_ERROR("yaw_damping in KF is not loaded from ros parameter server");
+    RCLCPP_ERROR(rclcpp::get_logger("MavDisturbanceObserver"), "yaw_damping in KF is not loaded from ros parameter server");
   }
 
   if (!observer_nh_.getParam("yaw_gain", yaw_gain_)) {
-    ROS_ERROR("yaw_gain in KF is not loaded from ros parameter server");
+    RCLCPP_ERROR(rclcpp::get_logger("MavDisturbanceObserver"), "yaw_gain in KF is not loaded from ros parameter server");
     abort();
   }
 
   if (!observer_nh_.getParam("P0_position", P0_position)) {
-    ROS_ERROR("P0_position in KF is not loaded from ros parameter server");
+    RCLCPP_ERROR(rclcpp::get_logger("MavDisturbanceObserver"), "P0_position in KF is not loaded from ros parameter server");
     abort();
   }
 
   if (!observer_nh_.getParam("P0_velocity", P0_velocity)) {
-    ROS_ERROR("P0_velocity in KF is not loaded from ros parameter server");
+    RCLCPP_ERROR(rclcpp::get_logger("MavDisturbanceObserver"), "P0_velocity in KF is not loaded from ros parameter server");
     abort();
   }
 
   if (!observer_nh_.getParam("P0_attitude", P0_attitude)) {
-    ROS_ERROR("P0_attitude in KF is not loaded from ros parameter server");
+    RCLCPP_ERROR(rclcpp::get_logger("MavDisturbanceObserver"), "P0_attitude in KF is not loaded from ros parameter server");
     abort();
   }
 
   if (!observer_nh_.getParam("P0_angular_velocity", P0_angular_velocity)) {
-    ROS_ERROR("P0_angular_velocity in KF is not loaded from ros parameter server");
+    RCLCPP_ERROR(rclcpp::get_logger("MavDisturbanceObserver"), "P0_angular_velocity in KF is not loaded from ros parameter server");
     abort();
   }
 
   if (!observer_nh_.getParam("P0_force", P0_force)) {
-    ROS_ERROR("P0_force in KF is not loaded from ros parameter server");
+    RCLCPP_ERROR(rclcpp::get_logger("MavDisturbanceObserver"), "P0_force in KF is not loaded from ros parameter server");
     abort();
   }
 
   if (!observer_nh_.getParam("P0_torque", P0_torque)) {
-    ROS_ERROR("P0_torque in KF is not loaded from ros parameter server");
+    RCLCPP_ERROR(rclcpp::get_logger("MavDisturbanceObserver"), "P0_torque in KF is not loaded from ros parameter server");
     abort();
   }
 
   if (!observer_nh_.getParam("external_forces_limit", temporary_external_forces_limit)) {
-    ROS_ERROR("external_forces_limit in KF is not loaded from ros parameter server");
+    RCLCPP_ERROR(rclcpp::get_logger("MavDisturbanceObserver"), "external_forces_limit in KF is not loaded from ros parameter server");
     abort();
   }
 
   if (!observer_nh_.getParam("external_moments_limit", temporary_external_moments_limit)) {
-    ROS_ERROR("external_moments_limit in KF is not loaded from ros parameter server");
+    RCLCPP_ERROR(rclcpp::get_logger("MavDisturbanceObserver"), "external_moments_limit in KF is not loaded from ros parameter server");
     abort();
   }
 
   if (!observer_nh_.getParam("omega_limit", temporary_omega_limit)) {
-    ROS_ERROR("omega_limit in KF is not loaded from ros parameter server");
+    RCLCPP_ERROR(rclcpp::get_logger("MavDisturbanceObserver"), "omega_limit in KF is not loaded from ros parameter server");
     abort();
   }
 
   if (!private_nh_.getParam("sampling_time", sampling_time_)) {
-    ROS_ERROR("sampling_time in KF is not loaded from ros parameter server");
+    RCLCPP_ERROR(rclcpp::get_logger("MavDisturbanceObserver"), "sampling_time in KF is not loaded from ros parameter server");
     abort();
   }
 
@@ -253,7 +253,7 @@ void KFDisturbanceObserver::loadROSParams()
 
   F_ = (sampling_time_ * F_continous_time).exp().sparseView();
 
-  ROS_INFO("KF parameters loaded successfully");
+  RCLCPP_INFO(rclcpp::get_logger("MavDisturbanceObserver"), "KF parameters loaded successfully");
 
   // First 9x9 (=measurement size) block is identity, rest is zero.
   H_.reserve(kMeasurementSize);
@@ -314,7 +314,7 @@ void KFDisturbanceObserver::DynConfigCallback(
     measurement_covariance_(i + 6) = config.r_attitude;
   }
 
-  ROS_INFO("mav_disturbance_observer:KF dynamic config is called successfully");
+  RCLCPP_INFO(rclcpp::get_logger("MavDisturbanceObserver"), "mav_disturbance_observer:KF dynamic config is called successfully");
 
 }
 
@@ -371,7 +371,7 @@ bool KFDisturbanceObserver::updateEstimator()
     return false;
 
   ROS_INFO_ONCE("KF is updated for first time.");
-  static ros::Time t_previous = ros::Time::now();
+  static rclcpp::Time t_previous = rclcpp::Time::now();
   static bool do_once = true;
   double dt;
 
@@ -379,7 +379,7 @@ bool KFDisturbanceObserver::updateEstimator()
     dt = 0.01;
     do_once = false;
   } else {
-    ros::Time t0 = ros::Time::now();
+    rclcpp::Time t0 = rclcpp::Time::now();
     dt = (t0 - t_previous).toSec();
     t_previous = t0;
   }
@@ -413,7 +413,7 @@ bool KFDisturbanceObserver::updateEstimator()
 
   //Limits on estimated_disturbances
   if (state_.allFinite() == false) {
-    ROS_ERROR("The estimated state in KF Disturbance Observer has a non-finite element");
+    RCLCPP_ERROR(rclcpp::get_logger("MavDisturbanceObserver"), "The estimated state in KF Disturbance Observer has a non-finite element");
     return false;
   }
 
@@ -438,12 +438,12 @@ bool KFDisturbanceObserver::updateEstimator()
     moments_offset_ += external_moments;
     calibration_counter_++;
 
-    if ((ros::Time::now() - start_calibration_time_) > calibration_duration_) {
+    if ((rclcpp::Time::now() - start_calibration_time_) > calibration_duration_) {
       is_calibrating_ = false;
       forces_offset_ = forces_offset_ / calibration_counter_;
       moments_offset_ = moments_offset_ / calibration_counter_;
       calibration_counter_ = 0;
-      ROS_INFO("Calibration finished");
+      RCLCPP_INFO(rclcpp::get_logger("MavDisturbanceObserver"), "Calibration finished");
       ROS_INFO_STREAM("force offset: " << forces_offset_.transpose() << "m/s2");
       ROS_INFO_STREAM("moment offset: " << moments_offset_.transpose() << "rad/s2");
     }
@@ -451,7 +451,7 @@ bool KFDisturbanceObserver::updateEstimator()
 
   if (observer_state_pub_.getNumSubscribers() > 0) {
     mav_disturbance_observer::ObserverStatePtr msg(new mav_disturbance_observer::ObserverState);
-    msg->header.stamp = ros::Time::now();
+    msg->header.stamp = rclcpp::Time::now();
     for (int i = 0; i < 3; i++) {
       msg->position[i] = state_(i);
       msg->velocity[i] = state_(i + 3);
